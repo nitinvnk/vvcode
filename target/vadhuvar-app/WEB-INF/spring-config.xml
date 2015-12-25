@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+	http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd  
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd  
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+	<mvc:annotation-driven>
+		<mvc:message-converters register-defaults="true">
+			<ref bean="jsonMessageConverter" />
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+	<context:component-scan base-package="com.vadhuvar.app" />
+
+	<!-- for processing requests with annotated controller methods and set Message 
+		Convertors from the list of convertors -->
+	<bean
+		class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+		<property name="messageConverters">
+			<list>
+				<ref bean="jsonMessageConverter" />
+			</list>
+		</property>
+	</bean>
+
+	<!-- To convert JSON to Object and vice versa -->
+	<bean id="jsonMessageConverter"
+		class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+	</bean>
+	<!-- JSON Support <bean name="viewResolver" class="org.springframework.web.servlet.view.BeanNameViewResolver"/> 
+		<bean name="jsonTemplate" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView"/> -->
+
+
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
+		<property name="url" value="jdbc:oracle:thin:@localhost:1521:xe" />
+		<property name="username" value="vadhuvar" />
+		<property name="password" value="vadhuvar" />
+	</bean>
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="annotatedClasses">
+			<list>
+				<value>com.vadhuvar.app.entities.MaritalStatus</value>
+				<value>com.vadhuvar.app.entities.Sex</value>
+				<value>com.vadhuvar.app.entities.Religion</value>
+				<value>com.vadhuvar.app.entities.Caste</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.OracleDialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="connection.pool_size">5</prop>
+				<prop key="current_session_context_class">thread</prop>
+				<prop key="hibernate.cache.region.factory_class">org.hibernate.cache.ehcache.EhCacheRegionFactory
+				</prop>
+				<prop key="hibernate.cache.use_second_level_cache">true</prop>
+				<prop key="hibernate.cache.use_query_cache">true</prop>
+			</props>
+		</property>
+	</bean>
+
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+
+	<!-- <bean id="log4jInitialization" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"> 
+		<property name="targetClass" value="org.springframework.util.Log4jConfigurer" 
+		/> <property name="targetMethod" value="initLogging" /> <property name="arguments"> 
+		<list> <value>WEB-INF/log4j.xml</value> </list> </property> </bean> -->
+
+	<!-- Mail Configuration -->
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<!-- SMTP settings -->
+		<property name="host" value="smtp.gmail.com" />
+		<property name="port" value="587" />
+		<property name="username" value="kasarvadhuvar@gmail.com" />
+		<property name="password" value="Aa)8h3tnm9" />
+
+		<property name="javaMailProperties">
+			<!-- additional properties specific to JavaMail -->
+			<props>
+				<prop key="mail.transport.protocol">smtp</prop>
+				<prop key="mail.smtp.auth">true</prop>
+				<prop key="mail.smtp.starttls.enable">true</prop>
+				<prop key="mail.debug">true</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- Velocity Engine Configuration -->
+
+	<bean id="mailer" class="com.vadhuvar.app.utilities.MailingEngine">
+		<property name="mailSender" ref="mailSender" />
+		<property name="velocityEngine" ref="velocityEngine" />
+	</bean>
+
+	<bean id="velocityEngine"
+		class="org.springframework.ui.velocity.VelocityEngineFactoryBean">
+		<property name="velocityProperties">
+			<props>
+				<prop key="resource.loader">class</prop>
+				<prop key="class.resource.loader.class">
+					org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
+				</prop>
+			</props>
+		</property>
+	</bean>
+</beans>   
